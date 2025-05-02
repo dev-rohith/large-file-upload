@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
   sam-app
-  Sample SAM Template for sam-app
+  Sample SAM Template with explicit REST API
 
 Globals:
   Function:
@@ -20,6 +20,14 @@ Parameters:
     Description: Name of the S3 bucket
 
 Resources:
+  MyRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      EndpointConfiguration: REGIONAL  
+      Name: MyExplicitRestApi
+      TracingEnabled: true
+
   S3Bucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -37,11 +45,12 @@ Resources:
         HelloWorld:
           Type: Api
           Properties:
-            Path: /hello
+            Path: /get-presigned-url
             Method: get
+            RestApiId: !Ref MyRestApi
       Policies:
         - S3CrudPolicy:
-            BucketName: my-serverless-rohith-my-bucket
+            BucketName: !Ref BucketName
       Environment:
         Variables:
           BUCKET_NAME: !Ref S3Bucket
@@ -75,7 +84,7 @@ Resources:
 Outputs:
   HelloWorldApi:
     Description: API Gateway endpoint URL for Prod stage for Hello World function
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
+    Value: !Sub "https://${MyRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
   HelloWorldFunction:
     Description: Hello World Lambda Function ARN
     Value: !GetAtt HelloWorldFunction.Arn

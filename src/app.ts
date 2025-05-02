@@ -8,6 +8,7 @@ export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGat
         const s3 = new S3Client({ region: "us-east-1" });
         const generatedKey: string = `${uuid()}`;
         const contentType = event.headers['Content-Type']
+        
         const command = new PutObjectCommand({
             Bucket: process.env.BUCKET_NAME,
             Key: generatedKey,
@@ -22,6 +23,7 @@ export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGat
                 message: 'Successfully created presigned URL for upload',
                 uploadUrl: signedUrl,
                 objectKey: generatedKey,
+                contentType
             }),
         };
     } catch (err) {
