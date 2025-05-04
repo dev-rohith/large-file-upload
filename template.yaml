@@ -1,8 +1,9 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
+
 Description: >
   sam-app
-  Sample SAM Template with explicit REST API
+  Sample SAM Template with explicit REST API and S3 pre-signed URL Lambda.
 
 Globals:
   Function:
@@ -16,33 +17,34 @@ Globals:
 Parameters:
   BucketName:
     Type: String
-    Default: "my-serverless-rohith-my-bucket"
-    Description: Name of the S3 bucket
+    Default: "my-serverless-rohith-s3bucket-large-upload"
+    Description: upload large file to s3
 
 Resources:
   MyRestApi:
     Type: AWS::Serverless::Api
     Properties:
-      StageName: Prod
-      EndpointConfiguration: REGIONAL  
-      Name: MyExplicitRestApi
+      StageName: Dev
+      EndpointConfiguration: REGIONAL
+      Name: MyUploadToS3RestApi
       TracingEnabled: true
 
   S3Bucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref BucketName
+ 
 
-  HelloWorldFunction:
+  UploadToS3Function:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/
       Handler: app.lambdaHandler
-      Runtime: nodejs22.x
+      Runtime: nodejs18.x
       Architectures:
-        - x86_64
+        - arm64
       Events:
-        HelloWorld:
+        UploadToS3:
           Type: Api
           Properties:
             Path: /get-presigned-url
@@ -53,7 +55,7 @@ Resources:
             BucketName: !Ref BucketName
       Environment:
         Variables:
-          BUCKET_NAME: !Ref S3Bucket
+          BUCKET_NAME: !Ref BucketName
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -66,28 +68,15 @@ Resources:
           - "@aws-sdk/client-s3"
           - "@aws-sdk/s3-request-presigner"
 
-  ApplicationResourceGroup:
-    Type: AWS::ResourceGroups::Group
-    Properties:
-      Name:
-        Fn::Sub: ApplicationInsights-SAM-${AWS::StackName}
-      ResourceQuery:
-        Type: CLOUDFORMATION_STACK_1_0
-
-  ApplicationInsightsMonitoring:
-    Type: AWS::ApplicationInsights::Application
-    Properties:
-      ResourceGroupName:
-        Ref: ApplicationResourceGroup
-      AutoConfigurationEnabled: "true"
-
 Outputs:
-  HelloWorldApi:
+  UploadToS3Api:
     Description: API Gateway endpoint URL for Prod stage for Hello World function
     Value: !Sub "https://${MyRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
-  HelloWorldFunction:
+
+  UploadToS3Function:
     Description: Hello World Lambda Function ARN
-    Value: !GetAtt HelloWorldFunction.Arn
-  HelloWorldFunctionIamRole:
+    Value: !GetAtt UploadToS3Function.Arn
+
+  UploadToS3FunctionIamRole:
     Description: Implicit IAM Role created for Hello World function
-    Value: !GetAtt HelloWorldFunctionRole.Arn
+    Value: !GetAtt UploadToS3FunctionRole.Arn
