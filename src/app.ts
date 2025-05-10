@@ -10,12 +10,12 @@ export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGat
     const bucket = process.env.BUCKET_NAME!;
     const s3 = new S3Client({ region });
 
-    const generatedKey: string = `${uuid()}`; //this is the filename it should be unique or else it will overwrite the previous object (my opinion)
+    const generatedKey: string = `${uuid()}`; 
     const ContentType = event.queryStringParameters?.cType
 
     const command = new PutObjectCommand({
       Bucket: process.env.BUCKET_NAME,
-      Key: generatedKey,  //this is the filename it should be unique or else it will overwrite the previous object (my opinion)
+      Key: generatedKey,  
       ContentType
     });
 
@@ -27,7 +27,7 @@ export const lambdaHandler = async (event: APIGatewayProxyEvent): Promise<APIGat
       body: JSON.stringify({
         message: 'Successfully created presigned URL for upload.Make sure to send the content type on the header.',
         uploadUrl: signedUrl,
-        hostedUrl, //front end guy need's it presigned url will not return anything in body bro
+        hostedUrl, 
         ContentType
       }),
     };
